@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="NEST CoreDev" />
+
+
+<title>Join Keys</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Join Keys</h1>
+<h4 class="author">NEST CoreDev</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#overview" id="toc-overview">Overview</a></li>
+<li><a href="#anatomy-of-join_keys" id="toc-anatomy-of-join_keys">Anatomy of <code>join_keys</code></a></li>
+<li><a href="#accessing-and-modifying-keys" id="toc-accessing-and-modifying-keys">Accessing and Modifying
+keys</a></li>
+<li><a href="#merging-join-keys" id="toc-merging-join-keys">Merging Join
+Keys</a></li>
+<li><a href="#join-keys-relationships" id="toc-join-keys-relationships">Join Keys Relationships</a>
+<ul>
+<li><a href="#primary-key-with-teal_data" id="toc-primary-key-with-teal_data">Primary Key with
+<code>teal_data</code></a></li>
+<li><a href="#foreign-keys-with-teal_data" id="toc-foreign-keys-with-teal_data">Foreign Keys with
+<code>teal_data</code></a></li>
+<li><a href="#implicit-relationships" id="toc-implicit-relationships">Implicit Relationships</a></li>
+</ul></li>
+<li><a href="#join-keys-in-adam-datasets" id="toc-join-keys-in-adam-datasets"><em>Join Keys</em> in
+<code>ADaM</code> Datasets</a></li>
+</ul>
+</div>
+
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>The <code>teal.data</code> package provides a way to define primary
+keys for a dataset and establish relationships with other datasets.</p>
+<p>Each dataset <em>joining keys</em> can be characterized by:</p>
+<ul>
+<li>Columns constituting the primary key;</li>
+<li>Foreign/merge keys, analogous to <code>SQL</code> foreign keys.</li>
+</ul>
+<p>Typically, an application developer specifies these keys manually.
+However, for datasets following the <code>ADaM</code> standard,
+<code>teal.data</code> can automatically assign keys using the
+<code>default_cdisc_join_keys</code> object. Refer to the section <a href="#join-keys-in-adam-datasets">“Joining Keys with <code>ADaM</code>
+Datasets”</a> for details on using this object to select specific
+datasets.</p>
+<div id="uses-of-join_keys-class-in-teal-applications" class="section level5">
+<h5>Uses of <code>join_keys</code> class in <em>teal</em>
+applications</h5>
+<p>The primary function of the <code>join_keys</code> class in
+<code>teal</code> applications is to facilitate the seamless <a href="https://insightsengineering.github.io/teal.transform/latest-tag/articles/data-merge.html">merging
+of datasets</a> using <code>teal.transform</code>.</p>
+<p>Additionally, it plays a role in the data filtering using the <em><a href="https://insightsengineering.github.io/teal/latest-tag/articles/filter-panel.html">Filter
+Panel</a></em> in a <code>teal</code> application. The filters applied
+to a (parent) dataset are also applied to their children.</p>
+</div>
+</div>
+<div id="anatomy-of-join_keys" class="section level2">
+<h2>Anatomy of <code>join_keys</code></h2>
+<p>The <code>join_keys</code> object contains information about the
+foreign/primary keys of multiple datasets. Each key is represented by a
+pair of datasets (by name reference) and a named character vector that
+encodes the column name mapping between the two datasets. In addition, a
+foreign key may also contain a <em>parent-child</em> attribute that is
+used in the “Filter Panel” as we mentioned above.</p>
+<p>A new join keys can be created as an empty object, or by defining an
+initial set of primary and foreign keys.</p>
+<p>That initial object can be extended by adding/modifying/removing keys
+and by establishing parent-child relationships between datasets.</p>
+<div id="join_keys...-join-keys-constructor-getter-setter" class="section level5">
+<h5><code>join_keys(...)</code>: Join Keys Constructor / Getter /
+Setter</h5>
+<p>Convenient function that is used both as the constructor and as the
+getter for <em>join_keys</em> objects.</p>
+<p>As the <em>Getter</em> it is used to retrieve the <em>joining
+keys</em> that are contained in other objects, such as a
+<code>teal_data</code> object.</p>
+<p>As the <em>Constructor</em> it is used to specify a collection of
+multiple individual keys (via <code>join_key</code> function described
+below).</p>
+</div>
+<div id="join_keydataset_1-dataset_2-key-parent-single-join-key-constructor" class="section level5">
+<h5><code>join_key(dataset_1, dataset_2, key, parent)</code>: Single
+Join Key Constructor</h5>
+<p>Specifies a primary key or a relationship between two datasets.</p>
+<ul>
+<li><code>dataset_1</code>, <code>dataset_2</code>: names of the
+datasets (if <code>dataset_2</code> is the same as
+<code>dataset_1</code> or is omitted, it creates a primary key);</li>
+<li><code>key</code>: named <code>character</code> vector of column name
+mapping between datasets (unnamed vector assumes column names between
+datasets are the same);</li>
+<li><code>directed</code> (optional): flag that indicates whether there
+is a <em>parent-child</em> directed relationship between
+<code>dataset_2</code> to <code>dataset_1</code> (latter as a
+parent).</li>
+</ul>
+<p>Note that join keys are assumed to be symmetric, i.e.,
+<code>join_key(&quot;ds1&quot;, &quot;ds2&quot;, c(&quot;ds1_col&quot; = &quot;ds2_col&quot;))</code>
+establishes a relationship from “x” to “y” and vice versa.</p>
+<p>By default, the new joining key will set the <code>dataset_1</code>
+as the parent.</p>
+</div>
+<div id="example-output" class="section level5">
+<h5>Example &amp; Output</h5>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(teal.data)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>jk <span class="ot">&lt;-</span> <span class="fu">join_keys</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds1&quot;</span>, <span class="at">keys =</span> <span class="st">&quot;col_1&quot;</span>), <span class="co"># ds1: [col_1]</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds2&quot;</span>, <span class="at">keys =</span> <span class="fu">c</span>(<span class="st">&quot;col_1&quot;</span>, <span class="st">&quot;col_2&quot;</span>)), <span class="co"># ds2: [col_1, col_2]</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds3&quot;</span>, <span class="at">keys =</span> <span class="fu">c</span>(<span class="st">&quot;col_1&quot;</span>, <span class="st">&quot;col_3&quot;</span>)), <span class="co"># ds3: [col_1, col_3]</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds2&quot;</span>, <span class="at">keys =</span> <span class="st">&quot;col_1&quot;</span>), <span class="co"># ds1 &lt;-- ds2</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds3&quot;</span>, <span class="at">keys =</span> <span class="st">&quot;col_1&quot;</span>), <span class="co"># ds1 &lt;-- ds3</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds4&quot;</span>, <span class="st">&quot;ds5&quot;</span>, <span class="at">keys =</span> <span class="fu">c</span>(<span class="st">&quot;col_4&quot;</span> <span class="ot">=</span> <span class="st">&quot;col_5&quot;</span>), <span class="at">directed =</span> <span class="cn">FALSE</span>) <span class="co"># ds4 &lt;--&gt; ds5</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># The parent-child relationships are created automatically (unless &#39;parent&#39; parameter is &quot;none&quot;)</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>jk</span></code></pre></div>
+<table>
+<colgroup>
+<col width="44%" />
+<col width="55%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Output of <code>print(jk)</code></th>
+<th align="center">Output annotation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>## A join_keys object containing foreign keys between 3 datasets:</code></td>
+<td align="center"><strong>Title</strong></td>
+</tr>
+<tr class="even">
+<td><code>## ds1: [col_1]</code></td>
+<td align="center"><strong>Primary keys</strong><br /><em>&lt;dataset
+name&gt;</em>: [<em>&lt;primary_keys&gt;</em>]</td>
+</tr>
+<tr class="odd">
+<td><code>##   &lt;-- ds2: [col_1]</code></td>
+<td align="center"><strong>Foreign keys</strong><br /> <em>(arrow
+<code>&lt;--</code> denotes <code>ds1</code> is the parent of
+<code>ds2</code>)</em></td>
+</tr>
+<tr class="even">
+<td><code>##   &lt;-- ds3: [col_1]</code></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td><code>## ds2: [col_1, col_2]</code></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td><code>##   --&gt; ds1: [col_1]</code></td>
+<td align="center">arrow <code>--&gt;</code> denotes <code>ds2</code> is
+a child of <code>ds1</code></td>
+</tr>
+<tr class="odd">
+<td><code>##   --* (implicit via parent with): ds3</code></td>
+<td align="center"><strong>Implicit relationship between
+<code>ds2</code> &amp; <code>ds3</code></strong><br /><em>(given that
+they share common keys with same parent)</em></td>
+</tr>
+<tr class="even">
+<td><code>## ds3: [col_1, col_3]</code></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td><code>##   --&gt; ds1: [col_1]</code></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td><code>##   --* (implicit via parent with): ds2</code></td>
+<td align="center"></td>
+</tr>
+<tr class="odd">
+<td><code>## ds4: [no primary keys]</code></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td><code>##   &lt;-&gt; ds5: [col_5]</code></td>
+<td align="center"><strong>Foreign keys</strong> <br /><em>(arrow
+<code>&lt;-&gt;</code> denotes no parent definition between
+datasets)</em></td>
+</tr>
+<tr class="odd">
+<td><code>## ds5: [no primary keys]</code></td>
+<td align="center"></td>
+</tr>
+<tr class="even">
+<td><code>##   &lt;-&gt; ds4: [col_4]</code></td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="accessing-and-modifying-keys" class="section level2">
+<h2>Accessing and Modifying keys</h2>
+<p>The <em>subset</em> operator with 2 indices (<code>x[i, j]</code>) is
+used to retrieve the primary/foreign keys. Both indices must be a string
+denoting the dataset name.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using the jk object defined in &quot;Anatomy of Join Keys&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>jk</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 5 datasets:
+## ds1: [col_1]
+##   &lt;-- ds2: [col_1]
+##   &lt;-- ds3: [col_1]
+## ds2: [col_1, col_2]
+##   --&gt; ds1: [col_1]
+##   --* (implicit via parent with): ds3
+## ds3: [col_1, col_3]
+##   --&gt; ds1: [col_1]
+##   --* (implicit via parent with): ds2
+## ds4: [no primary keys]
+##   &lt;-&gt; ds5: [col_5]
+## ds5: [no primary keys]
+##   &lt;-&gt; ds4: [col_4]</code></pre>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Getting primary key of &quot;ds1&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>jk[<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds1&quot;</span>]</span></code></pre></div>
+<pre><code>##   col_1 
+## &quot;col_1&quot;</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Getting foreign keys between &quot;ds4&quot; and &quot;ds5&quot;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>jk[<span class="st">&quot;ds4&quot;</span>, <span class="st">&quot;ds5&quot;</span>]</span></code></pre></div>
+<pre><code>##   col_4 
+## &quot;col_5&quot;</code></pre>
+<p>Note that there is a symmetry in the keys between <code>ds4</code>
+and <code>ds5</code> relationship:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>jk[<span class="st">&quot;ds5&quot;</span>, <span class="st">&quot;ds4&quot;</span>]</span></code></pre></div>
+<pre><code>##   col_5 
+## &quot;col_4&quot;</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>jk[<span class="st">&quot;ds5&quot;</span>, <span class="st">&quot;ds4&quot;</span>]</span></code></pre></div>
+<pre><code>##   col_5 
+## &quot;col_4&quot;</code></pre>
+<p>When only 1 argument is used this operator will return a
+<code>join_keys</code> object that is filtered accordingly.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using the jk object defined in &quot;Anatomy of Join Keys&quot;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>jk</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 5 datasets:
+## ds1: [col_1]
+##   &lt;-- ds2: [col_1]
+##   &lt;-- ds3: [col_1]
+## ds2: [col_1, col_2]
+##   --&gt; ds1: [col_1]
+##   --* (implicit via parent with): ds3
+## ds3: [col_1, col_3]
+##   --&gt; ds1: [col_1]
+##   --* (implicit via parent with): ds2
+## ds4: [no primary keys]
+##   &lt;-&gt; ds5: [col_5]
+## ds5: [no primary keys]
+##   &lt;-&gt; ds4: [col_4]</code></pre>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Getting primary key of &quot;ds1&quot;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>jk[<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds1&quot;</span>]</span></code></pre></div>
+<pre><code>##   col_1 
+## &quot;col_1&quot;</code></pre>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Getting keys of &quot;ds1&quot; and &quot;ds2&quot;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>jk[<span class="fu">c</span>(<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds2&quot;</span>)]</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 2 datasets:
+## ds1: [col_1]
+##   &lt;-- ds2: [col_1]
+## ds2: [col_1, col_2]
+##   --&gt; ds1: [col_1]</code></pre>
+<p>Modifying or adding a key uses the same notation with the assignment
+operator <code>&lt;-</code>. A symmetric relationship will be created
+automatically, where the parent (by default) will be the dataset defined
+in the first index. Assigning <code>NULL</code> value will delete the
+relationship.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Adding a new ds5 &lt;-- ds1 key</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>jk[<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds5&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;a_column&quot;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Removing an existing key</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>jk[<span class="st">&quot;ds4&quot;</span>, <span class="st">&quot;ds5&quot;</span>] <span class="ot">&lt;-</span> <span class="cn">NULL</span></span></code></pre></div>
+</div>
+<div id="merging-join-keys" class="section level2">
+<h2>Merging Join Keys</h2>
+<p>The combining of multiple <em>joining keys</em> is achieved using the
+<code>c()</code> generic function, which generates a symmetric and valid
+<code>join_keys</code> object. When encountering identical relationship
+pairs, this operation retains the last occurrence of the pair within the
+specified argument order.</p>
+<p>For added convenience, the function also accommodates
+<code>join_key_set</code> objects created through the
+<code>join_key</code> function. These objects can be provided as the
+initial argument or in any other position as needed.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>jk1 <span class="ot">&lt;-</span> <span class="fu">join_keys</span>(<span class="fu">join_key</span>(<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;col_1&quot;</span>))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>jk2 <span class="ot">&lt;-</span> <span class="fu">join_keys</span>(<span class="fu">join_key</span>(<span class="st">&quot;ds2&quot;</span>, <span class="st">&quot;ds2&quot;</span>, <span class="st">&quot;col_1&quot;</span>), <span class="fu">join_key</span>(<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds2&quot;</span>, <span class="st">&quot;col_1&quot;</span>))</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Merging</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(jk1, jk2)</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 2 datasets:
+## ds1: [col_1]
+##   &lt;-- ds2: [col_1]
+## ds2: [col_1]
+##   --&gt; ds1: [col_1]</code></pre>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Keeping last occurence</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(jk1, jk2, <span class="fu">join_keys</span>(<span class="fu">join_key</span>(<span class="st">&quot;ds2&quot;</span>, <span class="st">&quot;ds2&quot;</span>, <span class="st">&quot;col_2&quot;</span>), <span class="fu">join_key</span>(<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds2&quot;</span>, <span class="fu">c</span>(<span class="st">&quot;col_1&quot;</span> <span class="ot">=</span> <span class="st">&quot;col_2&quot;</span>))))</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 2 datasets:
+## ds1: [col_1]
+##   &lt;-- ds2: [col_2]
+## ds2: [col_2]
+##   --&gt; ds1: [col_1]</code></pre>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Merges join_key and join_key_set objects (from join_key function)</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(jk1, <span class="fu">join_key</span>(<span class="st">&quot;ds3&quot;</span>, <span class="st">&quot;ds3&quot;</span>, <span class="st">&quot;col_3&quot;</span>))</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 2 datasets:
+## ds1: [col_1]
+## ds3: [col_3]</code></pre>
+</div>
+<div id="join-keys-relationships" class="section level2">
+<h2>Join Keys Relationships</h2>
+<p>There are 2 types of relationships encoded with <em>joining keys</em>
+that are described in the following sections. The <em>primary</em> and
+<em>foreign</em> keys are created explicitly using the constructor for
+individual keys (<code>join_key</code>).</p>
+<p>Additionally, the <code>join_keys</code> object infers implicit
+relationships when two datasets share foreign keys to a parent dataset,
+but not between themselves. These implicit relationships are available
+just like another foreign key and can be used to merge datasets, despite
+not being defined by the user.</p>
+<div id="primary-key-with-teal_data" class="section level3">
+<h3>Primary Key with <code>teal_data</code></h3>
+<p>When using the <code>teal_data</code> function, the simplest method
+to define the join keys is to use the <code>join_keys</code> argument.
+We can specify the column(s) of the dataset that (together) uniquely
+identify rows in the dataset.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(teal.data)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>td_pk <span class="ot">&lt;-</span> <span class="fu">within</span>(</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">teal_data</span>(),</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  ds1 <span class="ot">&lt;-</span> <span class="fu">transform</span>(iris, <span class="at">id =</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(iris)))</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="fu">datanames</span>(td_pk) <span class="ot">&lt;-</span> <span class="st">&quot;ds1&quot;</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="fu">join_keys</span>(td_pk) <span class="ot">&lt;-</span> <span class="fu">join_keys</span>(<span class="fu">join_key</span>(<span class="st">&quot;ds1&quot;</span>, <span class="at">keys =</span> <span class="st">&quot;id&quot;</span>))</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="fu">join_keys</span>(td_pk)</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 1 datasets:
+## ds1: [id]</code></pre>
+<p>We can extend the previous example and define primary keys for
+multiple datasets:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>td_pk <span class="ot">&lt;-</span> <span class="fu">within</span>(</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  td_pk,</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    ds2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">W =</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">V =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">14</span>, <span class="at">M =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">2</span>))</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    ds3 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">V =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">14</span>, <span class="at">N =</span> <span class="dv">4</span>)</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="fu">datanames</span>(td_pk) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">datanames</span>(td_pk), <span class="st">&quot;ds2&quot;</span>, <span class="st">&quot;ds3&quot;</span>)</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="fu">join_keys</span>(td_pk)[<span class="st">&quot;ds2&quot;</span>, <span class="st">&quot;ds2&quot;</span>] <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;V&quot;</span>, <span class="st">&quot;W&quot;</span>)</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="fu">join_keys</span>(td_pk)[<span class="st">&quot;ds3&quot;</span>, <span class="st">&quot;ds3&quot;</span>] <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;V&quot;</span>, <span class="st">&quot;W&quot;</span>)</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a><span class="fu">join_keys</span>(td_pk)</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 3 datasets:
+## ds1: [id]
+## ds2: [V, W]
+## ds3: [V, W]</code></pre>
+</div>
+<div id="foreign-keys-with-teal_data" class="section level3">
+<h3>Foreign Keys with <code>teal_data</code></h3>
+<p>When passing multiple datasets to the <code>teal_data</code>
+function, dataset relationships are set using <code>join_keys</code> and
+<code>join_key</code> functions, which then can be used to merge
+datasets together within <code>teal</code> apps. For users familiar with
+<code>SQL</code> database schema, these relationships are symmetric and
+not as strict as <code>SQL</code> foreign key relationships as
+<code>teal</code> does not validate whether the values defined as
+foreign key columns are present in the table.</p>
+<p>For example:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(teal.data)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>td_fk <span class="ot">&lt;-</span> <span class="fu">within</span>(</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">teal_data</span>(),</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    ds1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">X =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">Y =</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">30</span>, <span class="at">Z =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    ds2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">W =</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">V =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">14</span>, <span class="at">M =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">2</span>))</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    ds3 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">V =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">14</span>, <span class="at">N =</span> <span class="dv">4</span>)</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a><span class="fu">datanames</span>(td_fk) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds2&quot;</span>, <span class="st">&quot;ds3&quot;</span>)</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a><span class="fu">join_keys</span>(td_fk) <span class="ot">&lt;-</span> <span class="fu">join_keys</span>(</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Primary keys</span></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds1&quot;</span>, <span class="at">keys =</span> <span class="fu">c</span>(<span class="st">&quot;X&quot;</span>)),</span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds2&quot;</span>, <span class="at">keys =</span> <span class="fu">c</span>(<span class="st">&quot;V&quot;</span>, <span class="st">&quot;W&quot;</span>)),</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds3&quot;</span>, <span class="at">keys =</span> <span class="fu">c</span>(<span class="st">&quot;V&quot;</span>)),</span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Foreign keys</span></span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds2&quot;</span>, <span class="fu">c</span>(<span class="st">&quot;X&quot;</span> <span class="ot">=</span> <span class="st">&quot;W&quot;</span>)),</span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds2&quot;</span>, <span class="st">&quot;ds3&quot;</span>, <span class="fu">c</span>(<span class="st">&quot;V&quot;</span> <span class="ot">=</span> <span class="st">&quot;V&quot;</span>))</span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a><span class="fu">join_keys</span>(td_fk)</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 3 datasets:
+## ds1: [X]
+##   &lt;-- ds2: [W]
+## ds2: [V, W]
+##   --&gt; ds1: [X]
+##   &lt;-- ds3: [V]
+## ds3: [V]
+##   --&gt; ds2: [V]</code></pre>
+</div>
+<div id="implicit-relationships" class="section level3">
+<h3>Implicit Relationships</h3>
+<p>Two datasets that share common <em>foreign</em> keys to the same
+<em>parent</em> dataset have an implicit relationship between them that
+is modeled and accessible in <em>joining keys</em>.</p>
+<p>This is a special relationship that is inferred from existing foreign
+keys. It does not need to be explicitly defined but it can be accessed
+and overwritten just as any other foreign key.</p>
+<p>These implicit relationships can be used to merge 2 datasets
+together, just as if they were defined manually.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(teal.data)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>td <span class="ot">&lt;-</span> <span class="fu">within</span>(</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">teal_data</span>(),</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>    ds1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">X =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">Y =</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">30</span>, <span class="at">Z =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>    ds2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">W =</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">V =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">14</span>, <span class="at">M =</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">2</span>))</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>    ds3 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">V =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">14</span>, <span class="at">N =</span> <span class="dv">4</span>)</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    ds4 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">V =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">14</span>, <span class="at">R =</span> <span class="fu">rnorm</span>(<span class="dv">10</span>))</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a><span class="fu">datanames</span>(td) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds2&quot;</span>, <span class="st">&quot;ds3&quot;</span>, <span class="st">&quot;ds4&quot;</span>)</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a><span class="fu">join_keys</span>(td) <span class="ot">&lt;-</span> <span class="fu">join_keys</span>(</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Primary keys</span></span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds1&quot;</span>, <span class="at">keys =</span> <span class="fu">c</span>(<span class="st">&quot;X&quot;</span>)),</span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds2&quot;</span>, <span class="at">keys =</span> <span class="fu">c</span>(<span class="st">&quot;V&quot;</span>, <span class="st">&quot;W&quot;</span>)),</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds3&quot;</span>, <span class="at">keys =</span> <span class="fu">c</span>(<span class="st">&quot;V&quot;</span>)),</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds4&quot;</span>, <span class="at">keys =</span> <span class="fu">c</span>(<span class="st">&quot;V&quot;</span>)),</span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Foreign keys</span></span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds2&quot;</span>, <span class="fu">c</span>(<span class="st">&quot;X&quot;</span> <span class="ot">=</span> <span class="st">&quot;W&quot;</span>)),</span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds2&quot;</span>, <span class="st">&quot;ds3&quot;</span>, <span class="fu">c</span>(<span class="st">&quot;V&quot;</span> <span class="ot">=</span> <span class="st">&quot;V&quot;</span>)),</span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;ds1&quot;</span>, <span class="st">&quot;ds4&quot;</span>, <span class="fu">c</span>(<span class="st">&quot;X&quot;</span> <span class="ot">=</span> <span class="st">&quot;B&quot;</span>))</span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a><span class="fu">join_keys</span>(td)</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 4 datasets:
+## ds1: [X]
+##   &lt;-- ds2: [W]
+##   &lt;-- ds4: [B]
+## ds2: [V, W]
+##   --&gt; ds1: [X]
+##   &lt;-- ds3: [V]
+##   --* (implicit via parent with): ds4
+## ds3: [V]
+##   --&gt; ds2: [V]
+## ds4: [V]
+##   --&gt; ds1: [X]
+##   --* (implicit via parent with): ds2</code></pre>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">join_keys</span>(td)[<span class="st">&quot;ds2&quot;</span>, <span class="st">&quot;ds4&quot;</span>]</span></code></pre></div>
+<pre><code>##   W 
+## &quot;B&quot;</code></pre>
+<p>Note that the definition above contains no <code>join_key</code> for
+<code>&quot;ds2&quot; &lt;-&gt; &quot;ds4&quot;</code></p>
+</div>
+</div>
+<div id="join-keys-in-adam-datasets" class="section level2">
+<h2><em>Join Keys</em> in <code>ADaM</code> Datasets</h2>
+<p><code>teal.data</code> provides a set of default join keys (primary
+and foreign) for datasets named according to the <code>ADaM</code>
+standard. They are stored in <code>default_cdisc_join_keys</code>.</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(default_cdisc_join_keys) <span class="sc">|&gt;</span> <span class="fu">sort</span>()</span></code></pre></div>
+<pre><code>##  [1] &quot;ADAE&quot;     &quot;ADAETTE&quot;  &quot;ADCM&quot;     &quot;ADCSSRS&quot;  &quot;ADDV&quot;     &quot;ADEG&quot;    
+##  [7] &quot;ADEQ5D5L&quot; &quot;ADEX&quot;     &quot;ADHY&quot;     &quot;ADLB&quot;     &quot;ADMH&quot;     &quot;ADQLQC&quot;  
+## [13] &quot;ADQS&quot;     &quot;ADRS&quot;     &quot;ADSAFTTE&quot; &quot;ADSL&quot;     &quot;ADSUB&quot;    &quot;ADTTE&quot;   
+## [19] &quot;ADVS&quot;</code></pre>
+<p>When not all default keys are required users can select a smaller set
+of datasets by subsetting (for example:
+<code>default_cdisc_join_keys[c(&quot;ADSL&quot;, &quot;ADTTE&quot;)]</code>). Please note,
+that for every element that is selected, its parent will also be
+returned (if it has one) as well as any pair-wise relationships in the
+resulting selection.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>default_cdisc_join_keys</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 19 datasets:
+## ADSL: [STUDYID, USUBJID]
+##   &lt;-- ADAE: [STUDYID, USUBJID]
+##   &lt;-- ADEG: [STUDYID, USUBJID]
+##   &lt;-- ADTTE: [STUDYID, USUBJID]
+##   &lt;-- ADAETTE: [STUDYID, USUBJID]
+##   &lt;-- ADCM: [STUDYID, USUBJID]
+##   &lt;-- ADEX: [STUDYID, USUBJID]
+##   &lt;-- ADLB: [STUDYID, USUBJID]
+##   &lt;-- ADMH: [STUDYID, USUBJID]
+##   &lt;-- ADQS: [STUDYID, USUBJID]
+##   &lt;-- ADRS: [STUDYID, USUBJID]
+##   &lt;-- ADSAFTTE: [STUDYID, USUBJID]
+##   &lt;-- ADVS: [STUDYID, USUBJID]
+##   &lt;-- ADDV: [STUDYID, USUBJID]
+##   &lt;-- ADSUB: [STUDYID, USUBJID]
+##   &lt;-- ADHY: [STUDYID, USUBJID]
+##   &lt;-- ADQLQC: [STUDYID, USUBJID]
+##   &lt;-- ADCSSRS: [STUDYID, USUBJID]
+##   &lt;-- ADEQ5D5L: [STUDYID, USUBJID]
+## ADAE: [STUDYID, USUBJID, ASTDTM, AETERM, AESEQ]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADEG: [STUDYID, USUBJID, PARAMCD, AVISIT]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADTTE: [STUDYID, USUBJID, PARAMCD]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADAETTE: [STUDYID, USUBJID, PARAMCD]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADCM: [STUDYID, USUBJID, ASTDTM, CMSEQ, ATC1CD, ATC2CD, ATC3CD, ATC4CD]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADEX, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADEX: [STUDYID, USUBJID, PARCAT1, PARAMCD, AVISITN, ASTDTM, EXSEQ]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADLB: [STUDYID, USUBJID, PARAMCD, AVISIT]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADMH: [STUDYID, USUBJID, ASTDTM, MHSEQ]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADQS: [STUDYID, USUBJID, PARAMCD, AVISIT]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADRS: [STUDYID, USUBJID, PARAMCD, AVISIT]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADSAFTTE: [STUDYID, USUBJID, PARAMCD]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADRS, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADVS: [STUDYID, USUBJID, PARAMCD, AVISIT]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADDV: [STUDYID, USUBJID, ASTDT, DVTERM, DVSEQ]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADSUB, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADSUB: [STUDYID, USUBJID, PARAMCD, AVISITN, ADTM, SRCSEQ]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADHY, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADHY: [STUDYID, USUBJID, PARAMCD, AVISITN, ADTM, SRCSEQ]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADQLQC, ADCSSRS, ADEQ5D5L
+## ADQLQC: [STUDYID, USUBJID, PARCAT1N, PARAMCD, BASETYPE, AVISITN, ATPTN, ADTM, QSSEQ]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADCSSRS, ADEQ5D5L
+## ADCSSRS: [STUDYID, USUBJID, PARAMCD, BASETYPE, AVISITN, DTYPE, ADTM]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADEQ5D5L
+## ADEQ5D5L: [STUDYID, USUBJID, PARCAT1N, PARAMCD, BASETYPE, AVISITN, ATPTN, ADTM, QSSEQ]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADAE, ADEG, ADTTE, ADAETTE, ADCM, ADEX, ADLB, ADMH, ADQS, ADRS, ADSAFTTE, ADVS, ADDV, ADSUB, ADHY, ADQLQC, ADCSSRS</code></pre>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>default_cdisc_join_keys[<span class="st">&quot;ADSL&quot;</span>]</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 1 datasets:
+## ADSL: [STUDYID, USUBJID]</code></pre>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>default_cdisc_join_keys[<span class="st">&quot;ADTTE&quot;</span>]</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 2 datasets:
+## ADSL: [STUDYID, USUBJID]
+##   &lt;-- ADTTE: [STUDYID, USUBJID]
+## ADTTE: [STUDYID, USUBJID, PARAMCD]
+##   --&gt; ADSL: [STUDYID, USUBJID]</code></pre>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>default_cdisc_join_keys[<span class="fu">c</span>(<span class="st">&quot;ADSL&quot;</span>, <span class="st">&quot;ADTTE&quot;</span>, <span class="st">&quot;ADRS&quot;</span>)]</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 3 datasets:
+## ADSL: [STUDYID, USUBJID]
+##   &lt;-- ADTTE: [STUDYID, USUBJID]
+##   &lt;-- ADRS: [STUDYID, USUBJID]
+## ADTTE: [STUDYID, USUBJID, PARAMCD]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADRS
+## ADRS: [STUDYID, USUBJID, PARAMCD, AVISIT]
+##   --&gt; ADSL: [STUDYID, USUBJID]
+##   --* (implicit via parent with): ADTTE</code></pre>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

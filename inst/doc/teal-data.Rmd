@@ -1,0 +1,96 @@
+---
+title: "Introduction to teal.data"
+author: "NEST CoreDev"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to teal.data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+The `teal.data` package specifies the data format used in `teal` applications. 
+The `teal_data` class inherits from [`qenv`](https://insightsengineering.github.io/teal.code/latest-tag/articles/qenv.html) and is meant to be used for reproducibility purposes. 
+
+## Quick Start
+
+To create an object of class `teal_data`, use the `teal_data` function.
+`teal_data` has a number of methods to manage relevant information in private class slots.
+
+```{r, results = 'hide', message = FALSE}
+library(teal.data)
+
+# create teal_data object
+my_data <- teal_data()
+
+# run code within teal_data to create data objects
+my_data <- within(
+  my_data,
+  {
+    data1 <- data.frame(id = 1:10, x = 11:20)
+    data2 <- data.frame(id = 1:10, x = 21:30)
+  }
+)
+
+# get objects stored in teal_data
+my_data[["data1"]]
+my_data[["data1"]]
+
+# get reproducible code
+get_code(my_data)
+
+# get or set datanames
+datanames(my_data) <- c("data1", "data2")
+datanames(my_data)
+
+# print
+print(my_data)
+```
+
+
+## `teal_data` characteristics
+
+A `teal_data` object keeps the following information:
+
+- `env` - an environment containing data.
+- `code` - a string containing code to reproduce `env` (details in [reproducibility](teal-data-reproducibility.html)).
+- `datanames` - a character vector listing objects of interest to `teal` modules (details in [this `teal` vignette](https://insightsengineering.github.io/teal/latest-tag/articles/including-data-in-teal-applications.html)).
+- `join_keys` - a `join_keys` object defining relationships between datasets (details in [Join Keys](join-keys.html)).
+
+### Reproducibility
+
+The primary function of `teal_data` is to provide reproducibility of data.
+We recommend to initialize empty `teal_data`, which marks object as _verified_, and create datasets by evaluating code in the object, using `within` or `eval_code`.
+Read more in [teal_data Reproducibility](teal-data-reproducibility.html).
+
+```{r}
+my_data <- teal_data()
+my_data <- within(my_data, data <- data.frame(x = 11:20))
+my_data <- within(my_data, data$id <- seq_len(nrow(data)))
+my_data # is verified
+```
+
+
+### Relational data models
+
+The `teal_data` class supports relational data.
+Relationships between datasets can be described by joining keys and stored in a `teal_data` object.
+These relationships can be read or set with the `join_keys` function.
+See more in [join_keys](join-keys.html).
+
+```{r}
+my_data <- teal_data()
+my_data <- within(my_data, {
+  data <- data.frame(id = 1:10, x = 11:20)
+  child <- data.frame(id = 1:20, data_id = c(1:10, 1:10), y = 21:30)
+})
+
+join_keys(my_data) <- join_keys(
+  join_key("data", "data", key = "id"),
+  join_key("child", "child", key = "id"),
+  join_key("child", "data", key = c("data_id" = "id"))
+)
+
+join_keys(my_data)
+```
