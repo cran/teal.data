@@ -1,3 +1,12 @@
+# teal.data 0.5.0
+
+### Bug fixes
+* Fix the `get_code_dependency` bug to detect the usage of objects in functions on both the left and right-hand sides for code reproducibility.
+* Remove duplicate entries in the `code_graph`.
+
+### Enhancements
+* Extended `get_code.teal_data()` with a possibility to steer internal methods with `...` parameter.
+
 # teal.data 0.4.0
 
 ### Enhancements

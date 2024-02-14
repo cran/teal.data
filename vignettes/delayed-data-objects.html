@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Dawid Kałędkowski" />
+
+
+<title>Delayed Data Objects</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Delayed Data Objects</h1>
+<h4 class="author">Dawid Kałędkowski</h4>
+<h4 class="date">15.05.2022</h4>
+
+
+
+<div id="basic-understanding" class="section level2">
+<h2>Basic understanding</h2>
+<p>Delayed data objects are <code>R</code> objects that contain
+instructions on how to acquire data. In practice, you will pass these
+<code>DDL</code> objects with their instructions into a
+<code>teal</code> application so that you can launch a <code>teal</code>
+app first and then pull the data afterwards.</p>
+<p>The main difference between a <code>DDL</code> object and a
+non-<code>DDL</code> object is that data is available immediately after
+creating a non-<code>DDL</code> object. In contrast, data in a
+<code>DDL</code> object is not available after construction, only after
+<code>pulling</code> it (executing instructions stored in the
+object).</p>
+<div id="key-concepts" class="section level3">
+<h3>Key concepts</h3>
+<ul>
+<li>A <strong><code>TealDatasetConnector</code></strong> is an object
+used to pull a single delayed data set into a <code>teal</code> app.
+Connectors to pull data from proprietary data storage are not included
+in this package.</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(teal.data)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scda)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># specialized function to create delayed data using scda (could also set keys when using cdisc_dataset_connector)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>adlb <span class="ot">&lt;-</span> <span class="fu">scda_dataset_connector</span>(</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;ADLB&quot;</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;adlb&quot;</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">keys =</span> <span class="fu">get_cdisc_keys</span>(<span class="st">&quot;ADLB&quot;</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># generalized function to create delayed data from code - see package help for other connectors</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">code_dataset_connector</span>(</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataname =</span> <span class="st">&quot;ADSL&quot;</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">keys =</span> <span class="fu">get_cdisc_keys</span>(<span class="st">&quot;ADSL&quot;</span>),</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">code =</span> <span class="st">&quot;library(scda)</span><span class="sc">\n</span><span class="st">ADSL &lt;- synthetic_cdisc_data(</span><span class="sc">\&quot;</span><span class="st">latest</span><span class="sc">\&quot;</span><span class="st">)$adsl&quot;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<ul>
+<li>A <strong><code>TealDataConnector</code></strong> is an object used
+to pull a set of delayed data sets into a <code>teal</code> app which
+all share a common connection (see <a href="delayed-data-loading.html">Delayed Data Loading</a> for the
+definition of a connection object).</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># using scda</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>adsl <span class="ot">&lt;-</span> <span class="fu">scda_cdisc_dataset_connector</span>(<span class="at">dataname =</span> <span class="st">&quot;ADSL&quot;</span>, <span class="at">scda_dataname =</span> <span class="st">&quot;adsl&quot;</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>adae <span class="ot">&lt;-</span> <span class="fu">scda_cdisc_dataset_connector</span>(<span class="at">dataname =</span> <span class="st">&quot;ADAE&quot;</span>, <span class="at">scda_dataname =</span> <span class="st">&quot;adae&quot;</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="ot">&lt;-</span> <span class="fu">relational_data_connector</span>(</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">connection =</span> <span class="fu">data_connection</span>(),</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">connectors =</span> <span class="fu">list</span>(adsl, adae)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<ul>
+<li>The <code>cdisc_data</code> function takes a set of
+<strong><code>TealDataConnector</code></strong>,
+<strong><code>TealDatasetConnector</code></strong> and / or
+<code>cdisc_datasets</code> (non-delayed datasets) to create the
+<strong><code>TealData</code></strong> object which is used to create
+<code>teal</code> applications.</li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create a TealDatasetConnector for ADVS</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>advs <span class="ot">&lt;-</span> <span class="fu">scda_cdisc_dataset_connector</span>(<span class="at">dataname =</span> <span class="st">&quot;ADVS&quot;</span>, <span class="at">scda_dataname =</span> <span class="st">&quot;advs&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># use cdisc_data() to create a `DDL` object</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>delayed_data <span class="ot">&lt;-</span> <span class="fu">cdisc_data</span>(adsl_adae, advs)</span></code></pre></div>
+</div>
+<div id="constructors" class="section level3">
+<h3>Constructors</h3>
+<p>Below is a list of all of the constructors available in
+<code>teal.data</code> to create <code>TealDataset</code> and delayed
+<code>TealDatasetConnector</code> objects:</p>
+<table>
+<colgroup>
+<col width="7%" />
+<col width="16%" />
+<col width="11%" />
+<col width="64%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center"></th>
+<th align="center">Description</th>
+<th align="center">Base Constructor</th>
+<th>Constructor Wrappers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><code>TealDataset</code></td>
+<td align="center">Dataframe with name (and optionally keys)</td>
+<td align="center"><code>dataset</code>, <code>dataset_file</code></td>
+<td><code>dataset</code>, <code>cdisc_dataset</code></td>
+</tr>
+<tr class="even">
+<td align="center"><code>TealDatasetConnector</code></td>
+<td align="center">Delayed Dataset</td>
+<td align="center"><code>dataset_connector</code>,
+<code>dataset_connector_file</code></td>
+<td>(see note 1 below) <code>rds_dataset_connector</code>,
+<code>script_dataset_connector</code>,
+<code>code_dataset_connector</code>, <code>csv_dataset_connector</code>,
+<code>fun_dataset_connector</code>,
+<code>python_dataset_connector</code>,
+<code>scda_dataset_connector</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><code>TealDataConnector</code></td>
+<td align="center">Group of <code>TealDatasetConnector</code></td>
+<td align="center"></td>
+<td></td>
+</tr>
+<tr class="even">
+<td align="center"><code>TealData</code></td>
+<td align="center">Group of <code>TealDatasetConnector</code>,
+<code>TealDataConnector</code>, <code>TealDataset</code></td>
+<td align="center"><code>teal_data</code>,
+<code>teal_data_file</code></td>
+<td>(see note 2 below) <code>cdisc_data</code>,
+<code>cdisc_data_file</code></td>
+</tr>
+</tbody>
+</table>
+<p>Notes:</p>
+<ol style="list-style-type: decimal">
+<li>All <code>xyz_dataset_connector</code> functions have an equivalent
+<code>xyz_cdisc_dataset_connector</code> function (for example
+<code>rds_cdisc_dataset_connector</code>) which specifies additional
+dataset metadata.</li>
+<li><code>cdisc_data</code> is the standard function used to create a
+data object to be used within teal apps for standard <code>CDISC</code>
+study data. The more general <code>teal_data</code> function can be used
+to allow arbitrary relational data to be used within teal apps.</li>
+</ol>
+</div>
+<div id="dataset-dependencies" class="section level3">
+<h3>Dataset dependencies</h3>
+<p>The datasets passed into <code>teal_data</code> and
+<code>cdisc_data</code> are pulled in the order they are inputted. So if
+datasets depend on other datasets being available they should be placed
+later in the argument list:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>adsl <span class="ot">&lt;-</span> <span class="fu">scda_cdisc_dataset_connector</span>(<span class="at">dataname =</span> <span class="st">&quot;ADSL&quot;</span>, <span class="st">&quot;adsl&quot;</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>adsl_2 <span class="ot">&lt;-</span> <span class="fu">code_cdisc_dataset_connector</span>(<span class="st">&quot;ADSL_2&quot;</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">code =</span> <span class="st">&quot;head(ADSL, 5)&quot;</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">keys =</span> <span class="fu">get_cdisc_keys</span>(<span class="st">&quot;ADSL&quot;</span>), <span class="at">ADSL =</span> adsl</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># launch method will be able to load the data as adsl will be pulled first</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cdisc_data</span>(adsl, adsl_2)</span></code></pre></div>
+<pre><code>## A CDISCTealData object containing 2 TealDataset/TealDatasetConnector object(s) as element(s):
+## --&gt; Element 1:
+## A CDISCTealDatasetConnector object, named ADSL, containing a TealDataset object that has not been loaded/pulled
+## --&gt; Element 2:
+## A CDISCTealDatasetConnector object, named ADSL_2, containing a TealDataset object that has not been loaded/pulled</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># launch method will not be able to load the data as adae is pulled first but it depends on adsl</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cdisc_data</span>(adsl_2, adsl)</span></code></pre></div>
+<pre><code>## A CDISCTealData object containing 2 TealDataset/TealDatasetConnector object(s) as element(s):
+## --&gt; Element 1:
+## A CDISCTealDatasetConnector object, named ADSL_2, containing a TealDataset object that has not been loaded/pulled
+## --&gt; Element 2:
+## A CDISCTealDatasetConnector object, named ADSL, containing a TealDataset object that has not been loaded/pulled</code></pre>
+</div>
+</div>
+<div id="suggested-development-workflow" class="section level2">
+<h2>Suggested development workflow</h2>
+<p>The following workflow facilitates building <code>teal</code> apps
+with <code>DDL</code> by minimizing debugging overhead.</p>
+<ol style="list-style-type: decimal">
+<li>Run a teal app configured without delayed data to verify that the
+app starts as expected.</li>
+<li>Replace the <code>cdisc_dataset</code> functions with the
+appropriate <code>TealDatasetConnector</code> objects.</li>
+<li>Add preprocessing code (see <a href="delayed-data-loading.html">Delayed Data Loading</a> for
+preprocessing documentation) and verify once again by running the newly
+created object’s <code>$launch</code> method.</li>
+<li>First, include just a single module to verify that the teal app
+starts and that it loads all the expected data.</li>
+<li>Then, add the rest of the modules one by one, replacing all dataset
+calls with strings and iteratively verify that the app functions as
+expected.</li>
+</ol>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

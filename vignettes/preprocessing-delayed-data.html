@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Dawid Kałędkowski" />
+
+
+<title>Pre-processing Delayed Data</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Pre-processing Delayed Data</h1>
+<h4 class="author">Dawid Kałędkowski</h4>
+<h4 class="date">15.05.2022</h4>
+
+
+
+<p>When creating apps which do not use <code>DDL</code>, once the
+datasets are created there is often some pre-processing required before
+initializing the teal app. Similarly, in the case of delayed data
+additional code instructions to pre-process data can be added to
+<code>DDL</code> objects which will be run after the data is loaded,
+which may happen after the launching of the shiny app or when the
+<code>pull()</code> method is called.</p>
+<ul>
+<li><code>mutate_dataset</code>: Individual datasets can be processed
+using the <code>mutate_dataset</code> function. For reproducibility to
+be maintained with <code>mutate_dataset</code>, all pre-processing code
+should modify one dataset at a time.</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scda)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(teal.data)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(magrittr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>adsl_cf <span class="ot">&lt;-</span> <span class="fu">callable_function</span>(<span class="cf">function</span>() <span class="fu">synthetic_cdisc_data</span>(<span class="st">&quot;latest&quot;</span>)<span class="sc">$</span>adsl)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>adsl <span class="ot">&lt;-</span> <span class="fu">cdisc_dataset_connector</span>(</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataname =</span> <span class="st">&quot;ADSL&quot;</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">pull_callable =</span> adsl_cf,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">keys =</span> <span class="fu">get_cdisc_keys</span>(<span class="st">&quot;ADSL&quot;</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_dataset</span>(<span class="st">&quot;ADSL$SEX &lt;- as.factor(ADSL$SEX)&quot;</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>adae_cf <span class="ot">&lt;-</span> <span class="fu">callable_function</span>(<span class="cf">function</span>() <span class="fu">synthetic_cdisc_data</span>(<span class="st">&quot;latest&quot;</span>)<span class="sc">$</span>adae)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>adae <span class="ot">&lt;-</span> <span class="fu">cdisc_dataset_connector</span>(</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataname =</span> <span class="st">&quot;ADAE&quot;</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">pull_callable =</span> adae_cf,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">keys =</span> <span class="fu">get_cdisc_keys</span>(<span class="st">&quot;ADAE&quot;</span>)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_dataset</span>(<span class="st">&quot;ADAE$X &lt;- rep(ADSL$SEX[1])&quot;</span>, <span class="at">vars =</span> <span class="fu">list</span>(<span class="at">ADSL =</span> adsl))</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>adsl<span class="sc">$</span><span class="fu">pull</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_raw_data</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="at">n =</span> <span class="dv">3</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 3 × 44
+##   STUDYID USUBJID     SUBJID SITEID   AGE AGEU  SEX   RACE  ETHNIC COUNTRY DTHFL
+##   &lt;chr&gt;   &lt;chr&gt;       &lt;chr&gt;  &lt;chr&gt;  &lt;int&gt; &lt;fct&gt; &lt;fct&gt; &lt;fct&gt; &lt;fct&gt;  &lt;fct&gt;   &lt;fct&gt;
+## 1 AB12345 AB12345-CH… id-128 CHN-3     32 YEARS M     ASIAN NOT H… CHN     N    
+## 2 AB12345 AB12345-CH… id-262 CHN-15    35 YEARS M     BLAC… NOT H… CHN     N    
+## 3 AB12345 AB12345-RU… id-378 RUS-3     30 YEARS F     ASIAN NOT H… RUS     N    
+## # … with 33 more variables: INVID &lt;chr&gt;, INVNAM &lt;chr&gt;, ARM &lt;fct&gt;, ARMCD &lt;fct&gt;,
+## #   ACTARM &lt;fct&gt;, ACTARMCD &lt;fct&gt;, TRT01P &lt;fct&gt;, TRT01A &lt;fct&gt;, REGION1 &lt;fct&gt;,
+## #   STRATA1 &lt;fct&gt;, STRATA2 &lt;fct&gt;, BMRKR1 &lt;dbl&gt;, BMRKR2 &lt;fct&gt;, ITTFL &lt;fct&gt;,
+## #   SAFFL &lt;fct&gt;, BMEASIFL &lt;fct&gt;, BEP01FL &lt;fct&gt;, RANDDT &lt;date&gt;, TRTSDTM &lt;dttm&gt;,
+## #   TRTEDTM &lt;dttm&gt;, EOSSTT &lt;fct&gt;, EOTSTT &lt;fct&gt;, EOSDT &lt;date&gt;, EOSDY &lt;int&gt;,
+## #   DCSREAS &lt;fct&gt;, DTHDT &lt;date&gt;, DTHCAUS &lt;fct&gt;, DTHCAT &lt;fct&gt;, LDDTHELD &lt;int&gt;,
+## #   LDDTHGR1 &lt;fct&gt;, LSTALVDT &lt;date&gt;, DTHADY &lt;int&gt;, study_duration_secs &lt;dbl&gt;</code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>adae<span class="sc">$</span><span class="fu">pull</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_raw_data</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="at">n =</span> <span class="dv">3</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 3 × 75
+##   STUDYID USUBJID     SUBJID SITEID   AGE AGEU  SEX   RACE  ETHNIC COUNTRY DTHFL
+##   &lt;chr&gt;   &lt;chr&gt;       &lt;chr&gt;  &lt;chr&gt;  &lt;int&gt; &lt;fct&gt; &lt;fct&gt; &lt;fct&gt; &lt;fct&gt;  &lt;fct&gt;   &lt;fct&gt;
+## 1 AB12345 AB12345-BR… id-134 BRA-1     47 YEARS M     WHITE NOT H… BRA     N    
+## 2 AB12345 AB12345-BR… id-134 BRA-1     47 YEARS M     WHITE NOT H… BRA     N    
+## 3 AB12345 AB12345-BR… id-134 BRA-1     47 YEARS M     WHITE NOT H… BRA     N    
+## # … with 64 more variables: INVID &lt;chr&gt;, INVNAM &lt;chr&gt;, ARM &lt;fct&gt;, ARMCD &lt;fct&gt;,
+## #   ACTARM &lt;fct&gt;, ACTARMCD &lt;fct&gt;, TRT01P &lt;fct&gt;, TRT01A &lt;fct&gt;, REGION1 &lt;fct&gt;,
+## #   STRATA1 &lt;fct&gt;, STRATA2 &lt;fct&gt;, BMRKR1 &lt;dbl&gt;, BMRKR2 &lt;fct&gt;, ITTFL &lt;fct&gt;,
+## #   SAFFL &lt;fct&gt;, BMEASIFL &lt;fct&gt;, BEP01FL &lt;fct&gt;, RANDDT &lt;date&gt;, TRTSDTM &lt;dttm&gt;,
+## #   TRTEDTM &lt;dttm&gt;, EOSSTT &lt;fct&gt;, EOTSTT &lt;fct&gt;, EOSDT &lt;date&gt;, EOSDY &lt;int&gt;,
+## #   DCSREAS &lt;fct&gt;, DTHDT &lt;date&gt;, DTHCAUS &lt;fct&gt;, DTHCAT &lt;fct&gt;, LDDTHELD &lt;int&gt;,
+## #   LDDTHGR1 &lt;fct&gt;, LSTALVDT &lt;date&gt;, DTHADY &lt;int&gt;, study_duration_secs &lt;dbl&gt;, …</code></pre>
+<ul>
+<li><code>mutate_data</code>: Collections of datasets should only be
+processed using the <code>mutate_data</code> function:</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cdisc_data</span>(adsl, adae, <span class="at">check =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_data</span>(<span class="st">&quot;ADAE$x &lt;- ADSL$SUBJID[1]&quot;</span>)</span></code></pre></div>
+<p>The code is processed in the order the datasets are pulled so if
+there are dependencies between datasets it matters the order in which
+pre-processing code is added to the <code>CDISCTealData</code> object
+just as order matters when the arguments are inputted to the
+<code>cdisc_data</code> function to create the
+<code>CDISCTealData</code> object.</p>
+<p>Finally, the <code>code</code> argument directly in
+<code>teal_data</code> and <code>cdisc_data</code> call does not need to
+be used for <code>DDL</code> because data loaded with <code>DDL</code>
+are reproducible by design. Because of this, it is recommended to set
+argument <code>check = TRUE</code> inside <code>cdisc_data</code>
+function when creating apps with <code>DDL</code>.</p>
+<div id="processing-dependencies" class="section level2">
+<h2>Processing dependencies</h2>
+<p>It may be required to generate a delayed data object that is
+dependent on some other delayed object or some constant value.</p>
+<p>For this, when creating your delayed data object it’s possible to
+supply the additional variables that are to be accessed during the data
+loading (pull) using additional arguments through <code>...</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_code</span>(adsl)</span></code></pre></div>
+<pre><code>## [1] &quot;ADSL &lt;- (function() synthetic_cdisc_data(\&quot;latest\&quot;)$adsl)()\nADSL$SEX &lt;- as.factor(ADSL$SEX)&quot;</code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>pull_fun_adae <span class="ot">&lt;-</span> <span class="fu">callable_function</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">function</span>() {</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">synthetic_cdisc_data</span>(<span class="st">&quot;latest&quot;</span>)<span class="sc">$</span>adae</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>adae <span class="ot">&lt;-</span> <span class="fu">dataset_connector</span>(</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataname =</span> <span class="st">&quot;ADAE&quot;</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">pull_callable =</span> pull_fun_adae,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">keys =</span> <span class="fu">get_cdisc_keys</span>(<span class="st">&quot;ADAE&quot;</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="fu">get_code</span>(adae)</span></code></pre></div>
+<pre><code>## [1] &quot;ADAE &lt;- (function() {\n    synthetic_cdisc_data(\&quot;latest\&quot;)$adae\n})()&quot;</code></pre>
+<p>It’s also possible to supply these additional variables after
+creating your object using the <code>mutate_dataset</code> function.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>last_run <span class="ot">&lt;-</span> <span class="fu">Sys.Date</span>() <span class="co"># constant value stored as a variable in the current session</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>adsl_cf <span class="ot">&lt;-</span> <span class="fu">callable_function</span>(<span class="cf">function</span>() <span class="fu">synthetic_cdisc_data</span>(<span class="st">&quot;latest&quot;</span>)<span class="sc">$</span>adsl)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>adsl <span class="ot">&lt;-</span> <span class="fu">cdisc_dataset_connector</span>(</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataname =</span> <span class="st">&quot;ADSL&quot;</span>,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">pull_callable =</span> adsl_cf,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">keys =</span> <span class="fu">get_cdisc_keys</span>(<span class="st">&quot;ADSL&quot;</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_dataset</span>(<span class="st">&quot;ADSL$last_run &lt;- last_run&quot;</span>, <span class="at">vars =</span> <span class="fu">list</span>(<span class="at">last_run =</span> last_run))</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">get_code</span>(adsl))</span></code></pre></div>
+<pre><code>## ADSL &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adsl)()
+## last_run &lt;- structure(19188, class = &quot;Date&quot;)
+## ADSL$last_run &lt;- last_run</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compared to evaluating the variable at the time of loading</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>adsl_cf <span class="ot">&lt;-</span> <span class="fu">callable_function</span>(<span class="cf">function</span>() <span class="fu">synthetic_cdisc_data</span>(<span class="st">&quot;latest&quot;</span>)<span class="sc">$</span>adsl)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>adsl <span class="ot">&lt;-</span> <span class="fu">cdisc_dataset_connector</span>(</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataname =</span> <span class="st">&quot;ADSL&quot;</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">pull_callable =</span> adsl_cf,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">keys =</span> <span class="fu">get_cdisc_keys</span>(<span class="st">&quot;ADSL&quot;</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_dataset</span>(<span class="st">&quot;last_run &lt;- Sys.Date()</span><span class="sc">\n</span><span class="st">ADSL$last_run &lt;- last_run&quot;</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>adsl <span class="sc">%&gt;%</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_code</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code></pre></div>
+<pre><code>## ADSL &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adsl)()
+## last_run &lt;- Sys.Date()
+## ADSL$last_run &lt;- last_run</code></pre>
+<p>This is also required when creating the object depends on another
+delayed data object:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_data</span>(<span class="st">&quot;latest&quot;</span>)<span class="sc">$</span>adsl</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>adae_cf <span class="ot">&lt;-</span> <span class="fu">callable_function</span>(<span class="cf">function</span>() <span class="fu">synthetic_cdisc_data</span>(<span class="st">&quot;latest&quot;</span>)<span class="sc">$</span>adae)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>adae <span class="ot">&lt;-</span> <span class="fu">cdisc_dataset_connector</span>(</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataname =</span> <span class="st">&quot;ADAE&quot;</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">pull_callable =</span> adae_cf,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">keys =</span> <span class="fu">get_cdisc_keys</span>(<span class="st">&quot;ADAE&quot;</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_dataset</span>(<span class="st">&quot;ADAE$n &lt;- nrow(ADSL)&quot;</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">get_code</span>(adae)) <span class="co"># the code returned by `adae` is not sufficient to reproduce `adae`</span></span></code></pre></div>
+<pre><code>## ADAE &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adae)()
+## ADAE$n &lt;- nrow(ADSL)</code></pre>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>adsl_cf <span class="ot">&lt;-</span> <span class="fu">callable_function</span>(<span class="cf">function</span>() <span class="fu">synthetic_cdisc_data</span>(<span class="st">&quot;latest&quot;</span>)<span class="sc">$</span>adsl)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>adsl <span class="ot">&lt;-</span> <span class="fu">cdisc_dataset_connector</span>(</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataname =</span> <span class="st">&quot;ADSL&quot;</span>,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">pull_callable =</span> adsl_cf,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">keys =</span> <span class="fu">get_cdisc_keys</span>(<span class="st">&quot;ADSL&quot;</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>adae_cf <span class="ot">&lt;-</span> <span class="fu">callable_function</span>(<span class="cf">function</span>() <span class="fu">synthetic_cdisc_data</span>(<span class="st">&quot;latest&quot;</span>)<span class="sc">$</span>adae)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>adae <span class="ot">&lt;-</span> <span class="fu">cdisc_dataset_connector</span>(</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataname =</span> <span class="st">&quot;ADAE&quot;</span>,</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">pull_callable =</span> adae_cf,</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">keys =</span> <span class="fu">get_cdisc_keys</span>(<span class="st">&quot;ADAE&quot;</span>)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_dataset</span>(<span class="st">&quot;ADAE$n &lt;- nrow(ADSL)&quot;</span>, <span class="at">vars =</span> <span class="fu">list</span>(<span class="at">ADSL =</span> adsl))</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">get_code</span>(adae)) <span class="co"># this code can be run independently</span></span></code></pre></div>
+<pre><code>## ADAE &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adae)()
+## ADSL &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adsl)()
+## ADAE$n &lt;- nrow(ADSL)</code></pre>
+<p>Related to this idea, it is possible to provide the code on a
+<code>Data</code> level. However, this will always return all the code
+used to generate all the datasets in the object:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="ot">&lt;-</span> <span class="fu">cdisc_data</span>(</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  adsl,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  adae</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span> <span class="fu">mutate_data</span>(<span class="st">&quot;ADAE$avg_age &lt;- mean(ADAE$AGE)&quot;</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="co"># the output for all 3 are the same</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="sc">%&gt;%</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_code</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code></pre></div>
+<pre><code>## ADSL &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adsl)()
+## ADAE &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adae)()
+## ADAE$n &lt;- nrow(ADSL)
+## ADAE$avg_age &lt;- mean(ADAE$AGE)</code></pre>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="sc">%&gt;%</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_code</span>(<span class="at">dataname =</span> <span class="st">&quot;ADAE&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code></pre></div>
+<pre><code>## ADSL &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adsl)()
+## ADAE &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adae)()
+## ADAE$n &lt;- nrow(ADSL)
+## ADAE$avg_age &lt;- mean(ADAE$AGE)</code></pre>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="sc">%&gt;%</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_code</span>(<span class="at">dataname =</span> <span class="st">&quot;ADSL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code></pre></div>
+<pre><code>## ADSL &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adsl)()
+## ADAE &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adae)()
+## ADAE$n &lt;- nrow(ADSL)
+## ADAE$avg_age &lt;- mean(ADAE$AGE)</code></pre>
+<p>The better approach would be to supply the code on a
+<code>Dataset</code> level. This ensures that the code accessed on a
+dataset level only contains the snippets that pertains to itself:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="ot">&lt;-</span> <span class="fu">cdisc_data</span>(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  adsl,</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  adae <span class="sc">%&gt;%</span> <span class="fu">mutate_dataset</span>(<span class="st">&quot;ADAE$avg_age &lt;- mean(ADAE$AGE)&quot;</span>)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="sc">%&gt;%</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_code</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code></pre></div>
+<pre><code>## ADSL &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adsl)()
+## ADAE &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adae)()
+## ADAE$n &lt;- nrow(ADSL)
+## ADAE$avg_age &lt;- mean(ADAE$AGE)</code></pre>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="sc">%&gt;%</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_code</span>(<span class="st">&quot;ADAE&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code></pre></div>
+<pre><code>## ADSL &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adsl)()
+## ADAE &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adae)()
+## ADAE$n &lt;- nrow(ADSL)
+## ADAE$avg_age &lt;- mean(ADAE$AGE)</code></pre>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="sc">%&gt;%</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_code</span>(<span class="st">&quot;ADSL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code></pre></div>
+<pre><code>## ADSL &lt;- (function() synthetic_cdisc_data(&quot;latest&quot;)$adsl)()</code></pre>
+<p>Related to this idea, the delayed data object needs to be supplied
+with the code needed to reproduce the data. This can be provided at the
+<code>Dataset</code> level or the <code>Data</code> level.</p>
+<p>Below is a comparison of these two approaches:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>adsl <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_data</span>(<span class="st">&quot;latest&quot;</span>)<span class="sc">$</span>adsl</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cdisc_dataset</span>(<span class="st">&quot;ADSL&quot;</span>, adsl) <span class="sc">%&gt;%</span> <span class="fu">get_code</span>() <span class="co"># no reproducible code</span></span></code></pre></div>
+<pre><code>## [1] &quot;&quot;</code></pre>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># provide the code to reproduce the data:</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cdisc_dataset</span>(<span class="st">&quot;ADSL&quot;</span>, adsl,</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">code =</span> <span class="st">&quot;ADSL &lt;- synthetic_cdisc_data(</span><span class="sc">\&quot;</span><span class="st">latest</span><span class="sc">\&quot;</span><span class="st">)$adsl&quot;</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_code</span>()</span></code></pre></div>
+<pre><code>## [1] &quot;ADSL &lt;- synthetic_cdisc_data(\&quot;latest\&quot;)$adsl&quot;</code></pre>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># it&#39;s possible to supply the code at the `Data` level:</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>adae <span class="ot">&lt;-</span> <span class="fu">synthetic_cdisc_data</span>(<span class="st">&quot;latest&quot;</span>)<span class="sc">$</span>adae</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="ot">&lt;-</span> <span class="fu">cdisc_data</span>(</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cdisc_dataset</span>(<span class="st">&quot;ADSL&quot;</span>, adsl),</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cdisc_dataset</span>(<span class="st">&quot;ADAE&quot;</span>, adae),</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">code =</span> <span class="st">&quot;ADSL &lt;- synthetic_cdisc_data(</span><span class="sc">\&quot;</span><span class="st">latest</span><span class="sc">\&quot;</span><span class="st">)$adsl</span><span class="sc">\n</span><span class="st">ADAE &lt;- synthetic_cdisc_data(</span><span class="sc">\&quot;</span><span class="st">latest</span><span class="sc">\&quot;</span><span class="st">)$adae&quot;</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="sc">%&gt;%</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_code</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code></pre></div>
+<pre><code>## ADSL &lt;- synthetic_cdisc_data(&quot;latest&quot;)$adsl
+## ADAE &lt;- synthetic_cdisc_data(&quot;latest&quot;)$adae</code></pre>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># but it&#39;s not possible then to access the code at a `Dataset` level:</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="sc">%&gt;%</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_code</span>(<span class="st">&quot;ADSL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code></pre></div>
+<pre><code>## ADSL &lt;- synthetic_cdisc_data(&quot;latest&quot;)$adsl
+## ADAE &lt;- synthetic_cdisc_data(&quot;latest&quot;)$adae</code></pre>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># this can be avoided by storing the code like so:</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="ot">&lt;-</span> <span class="fu">cdisc_data</span>(</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cdisc_dataset</span>(<span class="st">&quot;ADSL&quot;</span>, adsl, <span class="at">code =</span> <span class="st">&quot;ADSL &lt;- synthetic_cdisc_data(</span><span class="sc">\&quot;</span><span class="st">latest</span><span class="sc">\&quot;</span><span class="st">)$adsl&quot;</span>),</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cdisc_dataset</span>(<span class="st">&quot;ADAE&quot;</span>, adae, <span class="at">code =</span> <span class="st">&quot;ADAE &lt;- synthetic_cdisc_data(</span><span class="sc">\&quot;</span><span class="st">latest</span><span class="sc">\&quot;</span><span class="st">)$adsl&quot;</span>)</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>adsl_adae <span class="sc">%&gt;%</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_code</span>(<span class="st">&quot;ADSL&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code></pre></div>
+<pre><code>## ADSL &lt;- synthetic_cdisc_data(&quot;latest&quot;)$adsl</code></pre>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
