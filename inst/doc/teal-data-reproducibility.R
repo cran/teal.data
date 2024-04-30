@@ -27,15 +27,6 @@ data_right <- teal_data(
 )
 (data_right_verified <- verify(data_right)) # returns verified object
 
-## ----message=FALSE, error=TRUE------------------------------------------------
-data_wrong <- teal_data(
-  data = data,
-  code = quote({
-    data <- data.frame(x = 11:20)
-  })
-)
-verify(data_wrong) # fails verification, raises error
-
 ## -----------------------------------------------------------------------------
 library(teal.data)
 

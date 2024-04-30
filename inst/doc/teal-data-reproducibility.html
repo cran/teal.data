@@ -399,26 +399,26 @@ verification.</p>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>data_empty <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>data_empty <span class="co"># is verified</span></span></code></pre></div>
 <pre><code>## ✅︎ verified teal_data object
-## &lt;environment: 0x7fc1093ded08&gt; [L]
+## &lt;environment: 0x7feee372c858&gt; [L]
 ## Parent: &lt;environment: package:teal.data&gt;</code></pre>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data_empty <span class="ot">&lt;-</span> <span class="fu">within</span>(data_empty, i <span class="ot">&lt;-</span> <span class="fu">head</span>(iris))</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>data_empty <span class="co"># remains verified</span></span></code></pre></div>
 <pre><code>## ✅︎ verified teal_data object
-## &lt;environment: 0x7fc10cbe4a20&gt; [L]
+## &lt;environment: 0x7feeeb19ada0&gt; [L]
 ## Parent: &lt;environment: package:teal.data&gt;
 ## Bindings:
 ## • i: &lt;df[,5]&gt; [L]</code></pre>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data_with_data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>(<span class="at">i =</span> <span class="fu">head</span>(iris), <span class="at">code =</span> <span class="st">&quot;i &lt;- head(iris)&quot;</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>data_with_data <span class="co"># is unverified</span></span></code></pre></div>
 <pre><code>## ✖ unverified teal_data object
-## &lt;environment: 0x7fc1065c5c60&gt; [L]
+## &lt;environment: 0x7feee0f90118&gt; [L]
 ## Parent: &lt;environment: package:teal.data&gt;
 ## Bindings:
 ## • i: &lt;df[,5]&gt; [L]</code></pre>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>data_with_data <span class="ot">&lt;-</span> <span class="fu">within</span>(data_with_data, i<span class="sc">$</span>rand <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">nrow</span>(i)))</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>data_with_data <span class="co"># remains unverified</span></span></code></pre></div>
 <pre><code>## ✖ unverified teal_data object
-## &lt;environment: 0x7fc10ad57ab0&gt; [L]
+## &lt;environment: 0x7feee9aaf930&gt; [L]
 ## Parent: &lt;environment: package:teal.data&gt;
 ## Bindings:
 ## • i: &lt;df[,6]&gt; [L]</code></pre>
@@ -453,7 +453,7 @@ Otherwise an error will be raised.</p>
 <span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>(data_right_verified <span class="ot">&lt;-</span> <span class="fu">verify</span>(data_right)) <span class="co"># returns verified object</span></span></code></pre></div>
 <pre><code>## ✅︎ verified teal_data object
-## &lt;environment: 0x7fc10c496a28&gt; [L]
+## &lt;environment: 0x7feeea042a20&gt; [L]
 ## Parent: &lt;environment: package:teal.data&gt;
 ## Bindings:
 ## • data: &lt;df[,2]&gt; [L]</code></pre>
