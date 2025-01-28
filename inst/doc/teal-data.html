@@ -49,6 +49,7 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -345,56 +346,64 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>The <code>teal.data</code> package specifies the data format used in
-<code>teal</code> applications. The <code>teal_data</code> class
-inherits from <a href="https://insightsengineering.github.io/teal.code/latest-tag/articles/qenv.html"><code>qenv</code></a>
-and is meant to be used for reproducibility purposes.</p>
+<code>teal</code> applications.</p>
+<p>A <code>teal_data</code> is meant to be used for reproducibility
+purposes. The class inherits from <a href="https://insightsengineering.github.io/teal.code/latest-tag/articles/qenv.html"><code>qenv</code></a>
+and we encourage to get familiar with <a href="https://insightsengineering.github.io/teal.code/latest-tag/"><code>teal.code</code></a>
+first. <code>teal_data</code> has following characteristics:</p>
+<ul>
+<li>It inherits from the environment and methods such as <code>$</code>,
+<code>get()</code>, <code>ls()</code>, <code>as.list()</code> work out
+of the box.</li>
+<li><code>teal_data</code> is a locked environment, and data
+modification is only possible through the
+<code>teal.code::eval_code()</code> and <code>within.qenv()</code>
+functions.</li>
+<li>It stores metadata about the code used to create the data (see <a href="#reproducibility">reproducibility</a>).</li>
+<li>It supports slicing by <code>[</code>.</li>
+<li>It is immutable which means that each code evaluation does not
+modify the original <code>teal_data</code> environment directly.</li>
+<li>It maintains information about relationships between datasets (see
+<a href="#relational-data-models">Join Keys</a>).</li>
+</ul>
 <div id="quick-start" class="section level2">
 <h2>Quick Start</h2>
 <p>To create an object of class <code>teal_data</code>, use the
 <code>teal_data</code> function. <code>teal_data</code> has a number of
-methods to manage relevant information in private class slots.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(teal.data)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># create teal_data object</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># run code within teal_data to create data objects</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">within</span>(</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  my_data,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  {</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    data1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">x =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">20</span>)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    data2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">x =</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">30</span>)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># get objects stored in teal_data</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>my_data[[<span class="st">&quot;data1&quot;</span>]]</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>my_data[[<span class="st">&quot;data1&quot;</span>]]</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># get reproducible code</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="fu">get_code</span>(my_data)</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co"># get or set datanames</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="fu">datanames</span>(my_data) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;data1&quot;</span>, <span class="st">&quot;data2&quot;</span>)</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="fu">datanames</span>(my_data)</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co"># print</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(my_data)</span></code></pre></div>
-</div>
-<div id="teal_data-characteristics" class="section level2">
-<h2><code>teal_data</code> characteristics</h2>
-<p>A <code>teal_data</code> object keeps the following information:</p>
-<ul>
-<li><code>env</code> - an environment containing data.</li>
-<li><code>code</code> - a string containing code to reproduce
-<code>env</code> (details in <a href="teal-data-reproducibility.html">reproducibility</a>).</li>
-<li><code>datanames</code> - a character vector listing objects of
-interest to <code>teal</code> modules (details in <a href="https://insightsengineering.github.io/teal/latest-tag/articles/including-data-in-teal-applications.html">this
-<code>teal</code> vignette</a>).</li>
-<li><code>join_keys</code> - a <code>join_keys</code> object defining
-relationships between datasets (details in <a href="join-keys.html">Join
-Keys</a>).</li>
-</ul>
+methods to interact with the object.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(teal.data)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co"># create teal_data object</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co"># run code within teal_data to create data objects</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">within</span>(</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>  my_data,</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>  {</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>    data1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">x =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">20</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>    data2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">x =</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">30</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>    data3 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">x =</span> <span class="dv">31</span><span class="sc">:</span><span class="dv">40</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>  }</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>)</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="co"># get objects stored in teal_data</span></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>my_data[[<span class="st">&quot;data1&quot;</span>]]</span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>my_data[[<span class="st">&quot;data2&quot;</span>]]</span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="co"># limit objects stored in teal_data</span></span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>my_data[<span class="fu">c</span>(<span class="st">&quot;data1&quot;</span>, <span class="st">&quot;data3&quot;</span>)]</span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="co"># get reproducible code</span></span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a><span class="fu">get_code</span>(my_data)</span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a><span class="co"># get code just for specific object</span></span>
+<span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a><span class="fu">get_code</span>(my_data, <span class="at">names =</span> <span class="st">&quot;data2&quot;</span>)</span>
+<span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" tabindex="-1"></a><span class="co"># get datanames</span></span>
+<span id="cb1-30"><a href="#cb1-30" tabindex="-1"></a><span class="fu">names</span>(my_data)</span>
+<span id="cb1-31"><a href="#cb1-31" tabindex="-1"></a></span>
+<span id="cb1-32"><a href="#cb1-32" tabindex="-1"></a><span class="co"># print</span></span>
+<span id="cb1-33"><a href="#cb1-33" tabindex="-1"></a><span class="fu">print</span>(my_data)</span></code></pre></div>
 <div id="reproducibility" class="section level3">
 <h3>Reproducibility</h3>
 <p>The primary function of <code>teal_data</code> is to provide
@@ -402,15 +411,15 @@ reproducibility of data. We recommend to initialize empty
 <code>teal_data</code>, which marks object as <em>verified</em>, and
 create datasets by evaluating code in the object, using
 <code>within</code> or <code>eval_code</code>. Read more in <a href="teal-data-reproducibility.html">teal_data Reproducibility</a>.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">within</span>(my_data, data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">20</span>))</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">within</span>(my_data, data<span class="sc">$</span>id <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(data)))</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>my_data <span class="co"># is verified</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">within</span>(my_data, data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">20</span>))</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">within</span>(my_data, data<span class="sc">$</span>id <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(data)))</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>my_data <span class="co"># is verified</span></span></code></pre></div>
 <pre><code>## ✅︎ verified teal_data object
-## &lt;environment: 0x7feee7eb9238&gt; [L]
-## Parent: &lt;environment: package:teal.data&gt;
+## &lt;environment: 0x106711178&gt; 🔒 
+## Parent: &lt;environment: package:teal.data&gt; 
 ## Bindings:
-## • data: &lt;df[,2]&gt; [L]</code></pre>
+## - data: [data.frame]</code></pre>
 </div>
 <div id="relational-data-models" class="section level3">
 <h3>Relational data models</h3>
@@ -418,24 +427,45 @@ create datasets by evaluating code in the object, using
 Relationships between datasets can be described by joining keys and
 stored in a <code>teal_data</code> object. These relationships can be
 read or set with the <code>join_keys</code> function. See more in <a href="join-keys.html">join_keys</a>.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">within</span>(my_data, {</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">x =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">20</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  child <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>, <span class="at">data_id =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>), <span class="at">y =</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">30</span>)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">join_keys</span>(my_data) <span class="ot">&lt;-</span> <span class="fu">join_keys</span>(</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;data&quot;</span>, <span class="st">&quot;data&quot;</span>, <span class="at">key =</span> <span class="st">&quot;id&quot;</span>),</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;child&quot;</span>, <span class="st">&quot;child&quot;</span>, <span class="at">key =</span> <span class="st">&quot;id&quot;</span>),</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;child&quot;</span>, <span class="st">&quot;data&quot;</span>, <span class="at">key =</span> <span class="fu">c</span>(<span class="st">&quot;data_id&quot;</span> <span class="ot">=</span> <span class="st">&quot;id&quot;</span>))</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="fu">join_keys</span>(my_data)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">within</span>(my_data, {</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">x =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">20</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  child <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>, <span class="at">data_id =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>), <span class="at">y =</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">30</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>})</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="fu">join_keys</span>(my_data) <span class="ot">&lt;-</span> <span class="fu">join_keys</span>(</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;data&quot;</span>, <span class="st">&quot;data&quot;</span>, <span class="at">key =</span> <span class="st">&quot;id&quot;</span>),</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;child&quot;</span>, <span class="st">&quot;child&quot;</span>, <span class="at">key =</span> <span class="st">&quot;id&quot;</span>),</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>  <span class="fu">join_key</span>(<span class="st">&quot;child&quot;</span>, <span class="st">&quot;data&quot;</span>, <span class="at">key =</span> <span class="fu">c</span>(<span class="st">&quot;data_id&quot;</span> <span class="ot">=</span> <span class="st">&quot;id&quot;</span>))</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>)</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="fu">join_keys</span>(my_data)</span></code></pre></div>
 <pre><code>## A join_keys object containing foreign keys between 2 datasets:
 ## child: [id]
 ##   &lt;-- data: [id]
 ## data: [id]
 ##   --&gt; child: [data_id]</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># join_keys for limited object</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">join_keys</span>(my_data[<span class="st">&quot;child&quot;</span>])</span></code></pre></div>
+<pre><code>## A join_keys object containing foreign keys between 1 datasets:
+## child: [id]</code></pre>
+</div>
+<div id="hidden-objects" class="section level3">
+<h3>Hidden objects</h3>
+<p>An object is hidden in <code>teal_data</code> if its name starts with
+a dot (<code>.</code>). This can be used to pass auxiliary objects in
+the <code>teal_data</code> instance, without being visible in the
+<code>teal</code> summary and filter panel.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">teal_data</span>()</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">within</span>(my_data, {</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">x =</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">20</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  .data2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>, <span class="at">data_id =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>), <span class="at">y =</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">30</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>})</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="fu">ls</span>(my_data)</span></code></pre></div>
+<pre><code>## [1] &quot;data&quot;</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">names</span>(my_data)</span></code></pre></div>
+<pre><code>## [1] &quot;data&quot;</code></pre>
 </div>
 </div>
 </div>

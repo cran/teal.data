@@ -1,3 +1,26 @@
+# teal.data 0.7.0
+
+### Breaking changes
+
+- Soft deprecate `datanames` argument of `get_code()`. Use `names` instead.
+- Soft deprecate of `datanames()`. Use `names()` instead.
+- Deprecate of `datanames(x) <- value`. Does nothing, replace with renaming the objects inside the environment.
+- All parameters and functions deprecated on 0.4.0 were removed.
+
+### Enhancements
+
+- `names()` function is introduced replacing `datanames`.
+    - if `join_keys` are provided, the `names()` are now sorted in topological way (`Kahn` algorithm),
+    which means the parent dataset always precedes the child dataset.
+    - are extended by the parent dataset name, if one of the child dataset exist in `names()` and
+    the connection between child-parent is set through `join_keys` and `parent` exist in `teal_data` environment.
+    - do not allow to set a dataset name that do not exist in `teal_data` environment.
+    - `teal_data` no longer set default `names()` based on `join_keys` names - it uses only data names.
+
+### Miscellaneous
+
+- `get_code` no longer adds `warning` message about failed verification.
+
 # teal.data 0.6.0
 
 ### Enhancements
@@ -74,6 +97,7 @@
 ### Miscellaneous
 * Exported `validate_metadata` function.
 * Replaced argument `name` by `archive_name` to comply with the latest version of the `synthetic_cdisc_dataset` function.
+* Replaced use of `scda` with `random.cdisc.data`
 
 ### Bug fixes
 * Fixed `get_raw_data` examples.

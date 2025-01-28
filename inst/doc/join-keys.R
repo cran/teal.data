@@ -72,7 +72,6 @@ td_pk <- within(
   teal_data(),
   ds1 <- transform(iris, id = seq_len(nrow(iris)))
 )
-datanames(td_pk) <- "ds1"
 
 join_keys(td_pk) <- join_keys(join_key("ds1", keys = "id"))
 
@@ -86,7 +85,6 @@ td_pk <- within(
     ds3 <- data.frame(V = 5:14, N = 4)
   }
 )
-datanames(td_pk) <- c(datanames(td_pk), "ds2", "ds3")
 
 join_keys(td_pk)["ds2", "ds2"] <- c("V", "W")
 join_keys(td_pk)["ds3", "ds3"] <- c("V", "W")
@@ -107,7 +105,6 @@ td_fk <- within(
     ds3 <- data.frame(V = 5:14, N = 4)
   }
 )
-datanames(td_fk) <- c("ds1", "ds2", "ds3")
 
 join_keys(td_fk) <- join_keys(
   # Primary keys
@@ -133,7 +130,6 @@ td <- within(
     ds4 <- data.frame(V = 5:14, R = rnorm(10))
   }
 )
-datanames(td) <- c("ds1", "ds2", "ds3", "ds4")
 
 join_keys(td) <- join_keys(
   # Primary keys
