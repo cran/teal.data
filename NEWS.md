@@ -1,3 +1,13 @@
+# teal.data 0.8.0
+
+### Breaking changes
+
+* Print of a `teal_data` object now shows "code (un)verified" instead of "(un)verified teal_data object".
+
+### Miscellaneous
+
+* Documentation for random `CDISC` datasets was updated and placed in a single man page (#367).
+
 # teal.data 0.7.0
 
 ### Breaking changes
