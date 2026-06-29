@@ -1,3 +1,7 @@
+# teal.data 0.8.1
+
+* Update maintainer.
+
 # teal.data 0.8.0
 
 ### Breaking changes

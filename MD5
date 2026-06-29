@@ -1,6 +1,6 @@
-a8d500f0803e8878ad09bcf07f5faff6 *DESCRIPTION
+6a06d6e022d47f93935751dc456e76c5 *DESCRIPTION
 045e3122155522f3c999751ada02315e *NAMESPACE
-ee456abe159031805bef029cb652de22 *NEWS.md
+96ff0e38193f33a4fcd75d59733f76ec *NEWS.md
 231783e5998f05fe8eac334adba16fa8 *R/cdisc_data.R
 23582d2e6fca1452d07f8e5bfc21948e *R/data.R
 ac415cfe1fecb520b91140bd6a55a497 *R/deprecated.R
@@ -24,8 +24,8 @@ a6c20f914d68dbbdaf298fbf906d33ad *R/teal_data-extract.R
 fc4795b0e5456999e335dbe8b36194a5 *R/topological_sort.R
 6efd84b54194bbe83e19ed1505a44ca9 *R/verify.R
 eaad49527806627b6647c725ca2bc82d *R/zzz.R
-da85f4ad60cd3c66c769b8bba44316d0 *README.md
-3e8f5e423774bf56fffc0c5069f6d748 *build/vignette.rds
+c934d71b4057dc7b5c1ef22a542e8879 *README.md
+eae1f4641442e9f381773c99a2530991 *build/vignette.rds
 3b9291e9691ecaa3d2cc790733c5a791 *data/default_cdisc_join_keys.rda
 69504b7965d6fed3b662799e79d9c0d2 *data/rADAE.rda
 275bded7e1468f88c4783a08b9149ab4 *data/rADCM.rda
@@ -42,10 +42,10 @@ c5ad6baffd406f46d80e7575fa280489 *data/rADVS.rda
 b571239b2ef99fe78a79a755bb681908 *inst/doc/join-keys.html
 054a42abbd7fc356ec0dfa3f92bdd8b2 *inst/doc/teal-data-reproducibility.R
 0c6a65f61bfe6855f199e67ec4a611bb *inst/doc/teal-data-reproducibility.Rmd
-6c5bbbc143bd147b703c6894b5a0f21c *inst/doc/teal-data-reproducibility.html
+a00af9e2a2c989acdeb9c72964b87cd0 *inst/doc/teal-data-reproducibility.html
 e24840434431cfa23dd3264d8e7cbf56 *inst/doc/teal-data.R
 0dbf06f8f4e457e22f1ba69fa95374b9 *inst/doc/teal-data.Rmd
-1c371a7b8a192fd770a07a477c477805 *inst/doc/teal-data.html
+1c9f2db18841b52e5e53e4f4507bbb72 *inst/doc/teal-data.html
 9f94643f7100f0c4fed6c216d26b5364 *man/assert_compatible_keys.Rd
 3b4437e8d387261d99ed821537c7fd79 *man/assert_compatible_keys2.Rd
 c77fefa5866b6e4eeff5177d23d038ab *man/assert_parent_child.Rd
@@ -73,7 +73,7 @@ ed07a9c243e8bc269362f5f3c9bf4632 *man/names.teal_data.Rd
 d9df2a94039ab07b3f39a97c8494517f *man/parents.Rd
 99e4896c8cb571d3eda19aa3fa1022ce *man/random_cdisc_data.Rd
 03ecacb5b112a8ea44abd7e54f86eb02 *man/show-teal_data-method.Rd
-b0925b731aaf07d53c658a88d70202ad *man/teal.data-package.Rd
+22edcf348a1b150a275114d94f9d56a7 *man/teal.data-package.Rd
 f54352e1941add31de2c47c9bd68f319 *man/teal_data-class.Rd
 60267db58929570f9fd4b91ca4658a60 *man/teal_data.Rd
 0f55a5695978a89d6baf0496875bdbad *man/topological_sort.Rd
